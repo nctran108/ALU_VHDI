@@ -9,7 +9,7 @@ entity top_level is
            Rd          : in 	unsigned(4 downto 0);
            Rs          : in 	unsigned(4 downto 0);
            Rt          : in 	unsigned(4 downto 0);
-           ALUctr      : in     unsigned(2 downto 0);
+           ALUctr      : in     unsigned(3 downto 0);
            Zero	       : out	STD_LOGIC;
            Overflow    : out	STD_LOGIC;
            Carryout    : out    STD_LOGIC;
@@ -21,7 +21,7 @@ end top_level;
 architecture simple of top_level is
     signal busA_sig, busB_sig : std_logic_vector(31 downto 0);
     signal Rd_sig, Rs_sig, Rt_sig   : std_logic_vector(4 downto 0);
-    signal ALUctr_sig : std_logic_vector(2 downto 0);
+    signal ALUctr_sig : std_logic_vector(3 downto 0);
     signal Result_sig : std_logic_vector(31 downto 0);
 ------------------------------------------------------------------------
 -- Implementation

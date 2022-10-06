@@ -13,7 +13,7 @@ architecture behavior of top_level_tb is
   type Rd_array is array(0 to (NUM_VALS - 1)) of unsigned(4 downto 0);
   type Rs_array is array(0 to (NUM_VALS - 1)) of unsigned(4 downto 0);
   type Rt_array is array(0 to (NUM_VALS - 1)) of unsigned(4 downto 0);
-  type ALUctr_array is array(0 to (NUM_VALS - 1)) of unsigned(2 downto 0);
+  type ALUctr_array is array(0 to (NUM_VALS - 1)) of unsigned(3 downto 0);
   type Zero_array is array(0 to (NUM_VALS - 1)) of std_logic;
   type Overflow_array is array(0 to (NUM_VALS - 1)) of std_logic;
   type Carryout_array is array(0 to (NUM_VALS - 1)) of std_logic;
@@ -24,7 +24,7 @@ architecture behavior of top_level_tb is
   constant Rd_vals : Rd_array := ("11110","11110");
   constant Rs_vals : Rs_array := ("00000","00010");
   constant Rt_vals : Rt_array := ("00001","00001");
-  constant ALUctr_vals : ALUctr_array := ("011","100");
+  constant ALUctr_vals : ALUctr_array := ("0011","0100");
   constant Zero_vals : Zero_array := ('1','0');
   constant Overflow_vals : Overflow_array := ('1','0');
   constant Carryout_vals : Carryout_array := ('1','0');
@@ -36,7 +36,7 @@ architecture behavior of top_level_tb is
   signal Rd_sig : unsigned(4 downto 0);
   signal Rs_sig : unsigned(4 downto 0);
   signal Rt_sig : unsigned(4 downto 0);
-  signal ALUctr_sig : unsigned(2 downto 0);
+  signal ALUctr_sig : unsigned(3 downto 0);
   signal Zero_sig : std_logic;
   signal Overflow_sig : std_logic;
   signal Carryout_sig : std_logic;
