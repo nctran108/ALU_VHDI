@@ -23,7 +23,7 @@ begin
 end checkZero;
 
 signal sumResult, subResult : std_logic_vector(31 downto 0);
-signal c_in, c_out, is_zero,c_in1, c_out1,is_overflow: std_logic := '0';
+signal c_in, c_out, is_zero,c_in1, c_out1,overflow_sig, overflow_sig1: std_logic := '0';
 
 begin   
 c_in1 <= '1';
@@ -33,7 +33,7 @@ adder: entity work.N_bit_adder(Behavioral)
               B => busB,
               C_in => c_in,
               C_out => c_out,
-              Overflow => is_overflow,
+              Overflow => overflow_sig,
               S => sumResult);
 
 subtracter: entity work.N_bit_adder(Behavioral)
@@ -42,38 +42,37 @@ subtracter: entity work.N_bit_adder(Behavioral)
               B => busB,
               C_in => c_in1,
               C_out => c_out1,
-              Overflow => is_overflow,
+              Overflow => overflow_sig1,
               S => subResult);
 
 mux: process(ALUctr,busA,busB)
 variable rs : integer := 0;
 variable output : std_logic_vector(31 downto 0);
+variable is_overflow: std_logic := '0';
 begin
     case ALUctr is
     when "0000" => --addition
         output := sumResult;
         Zero <= checkZero(output);
         Carryout <= c_out;
-        Overflow <= is_overflow;
+        is_overflow := overflow_sig;
     when "0001" => --subtraction
         output := subResult;
         Zero <= checkZero(output);
         Carryout <= c_out1;
-        Overflow <= is_overflow;
+        is_overflow := overflow_sig1;
     when "0010" => --Bitwise AND
         output := busA and busB;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "0011" => --Bitwise OR
         output := busA or busB;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "0100" => --Logical left shift
         output := busB;
         rs := to_integer(signed(busA));
-        if rs <= 0 or rs >= 5 then
+        if rs <= 0 or rs >= 32 then
             rs := 0;
         else
             rs := rs;
@@ -83,11 +82,10 @@ begin
             end loop;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "0101" => --Logical right shift
         output := busB;
         rs := to_integer(signed(busA));
-        if rs < 1 or rs >= 5 then
+        if rs < 1 or rs >= 32 then
             rs := 0;
         else
             rs := rs;
@@ -97,11 +95,10 @@ begin
             end loop;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "0110" => --Arithmetic left shift
         output := busB;
         rs := to_integer(signed(busA));
-        if rs < 1 or rs >= 5 then
+        if rs < 1 or rs >= 32 then
             rs := 0;
         else
             rs := rs;
@@ -111,11 +108,10 @@ begin
             end loop;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "0111" => --Arithmetic right shift
         output := busB;
         rs := to_integer(signed(busA));
-        if rs < 1 or rs >= 5 then
+        if rs < 1 or rs >= 32 then
             rs := 0;
         else
             rs := rs;
@@ -125,15 +121,14 @@ begin
             end loop;
         Zero <= checkZero(output);
         Carryout <= '0';
-        Overflow <= '0';
     when "1000" => --Multiplier
     when others => --other cases
         output := (others => '0');   
         Zero <= '0';
         Carryout <= '0';
-        Overflow <= '0';
     end case;
     Result <= output;
+    Overflow <= is_overflow;
     end process mux;
 
 end Behavioral;
