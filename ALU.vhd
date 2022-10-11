@@ -22,45 +22,54 @@ begin
     end if;
 end checkZero;
 
-signal sumResult, subResult : std_logic_vector(31 downto 0);
-signal c_in, c_out, is_zero,c_in1, c_out1,overflow_sig, overflow_sig1: std_logic := '0';
+procedure adder (variable x,y: in signed(31 downto 0);
+                 variable c_in: in std_logic;
+                 variable c_out: out std_logic;
+                 variable sum: out std_logic_vector(31 downto 0);
+                 variable over: out std_logic) is
+                 
+                 variable temp : signed(31 downto 0);
+                 variable c : signed(31 downto 0) := (others => '0');
+                 begin
+
+                    temp(0) := y(0) xor c_in;
+                    sum(0) := (x(0) xor temp(0)) xor c_in;
+                    c(0) := (x(0) and (temp(0) or c_in)) or (c_in and temp(0));
+                    for i in 1 to 31 loop
+                        temp(i) := y(i) xor c_in;
+                        sum(i) := (x(i) xor temp(i)) xor c(i-1);
+                        c(i) := (x(i) and (temp(i) or c(i-1))) or (c(i-1) and temp(i)); 
+                    end loop; 
+                    
+                    c_out := c(31);
+                    over := C(30) xor C(31);            
+    end adder; 
 
 begin   
-c_in1 <= '1';
-adder: entity work.N_bit_adder(Behavioral)
-    generic map(32)
-    port map (A => busA,
-              B => busB,
-              C_in => c_in,
-              C_out => c_out,
-              Overflow => overflow_sig,
-              S => sumResult);
-
-subtracter: entity work.N_bit_adder(Behavioral)
-    generic map(32)
-    port map (A => busA,
-              B => busB,
-              C_in => c_in1,
-              C_out => c_out1,
-              Overflow => overflow_sig1,
-              S => subResult);
 
 mux: process(ALUctr,busA,busB)
-variable rs : integer := 0;
+variable rs: integer := 0;
 variable output : std_logic_vector(31 downto 0);
-variable is_overflow: std_logic := '0';
+variable is_overflow, Cin, Cout : std_logic := '0';
+variable a_sig, b_sig, temp: signed(31 downto 0);
+variable c : signed(31 downto 0) := (others => '0');
+variable multiplier, multiplicand : std_logic_vector(31 downto 0);
+variable product : std_logic_vector(63 downto 0) := (others => '0');
 begin
     case ALUctr is
     when "0000" => --addition
-        output := sumResult;
+        a_sig := signed(busA);
+        b_sig := signed(busB);
+        adder(a_sig,b_sig,Cin,Cout,output,is_overflow);
+        Carryout <= Cout;
         Zero <= checkZero(output);
-        Carryout <= c_out;
-        is_overflow := overflow_sig;
     when "0001" => --subtraction
-        output := subResult;
+        a_sig := signed(busA);
+        b_sig := signed(busB);
+        Cin := '1';
+        adder(a_sig,b_sig,Cin,Cout,output,is_overflow);
         Zero <= checkZero(output);
-        Carryout <= c_out1;
-        is_overflow := overflow_sig1;
+        Carryout <= Cout;
     when "0010" => --Bitwise AND
         output := busA and busB;
         Zero <= checkZero(output);
@@ -122,6 +131,25 @@ begin
         Zero <= checkZero(output);
         Carryout <= '0';
     when "1000" => --Multiplier
+        multiplier := busA;
+        multiplicand := busB;
+        Cin := '0';
+        product := (others => '0');
+        for i in 0 to 31 loop
+            if multiplier(0) = '1' then
+                adder(signed(multiplicand),signed(product(63 downto 32)),Cin,Cout,product(63 downto 32),is_overflow);
+                end if;
+            multiplier := '0' & multiplier(31 downto 1);
+            product := '0' & product(63 downto 1);
+            end loop;
+        output := product(31 downto 0);
+        Zero <= checkZero(output);
+        Carryout <= '0';
+        if to_integer(signed(product)) /= to_integer(signed(output)) then
+            is_overflow := '1';
+        else
+            is_overflow := '0';
+            end if;
     when others => --other cases
         output := (others => '0');   
         Zero <= '0';
